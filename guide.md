@@ -1,4 +1,4 @@
-﻿# A40 + vLLM + Qwen3.5-4B Benchmark Guide
+﻿# A40 + vLLM + Qwen3.5-0.8B Benchmark Guide
 
 This repo is set up to rely on `uv` for Python management.
 
@@ -99,7 +99,7 @@ You do not need `python -m venv`, `pip install`, or `source .venv/bin/activate` 
 Run the server through `uv` so the repo-managed environment is always used:
 
 ```bash
-uv run vllm serve Qwen/Qwen3.5-4B \
+uv run vllm serve Qwen/Qwen3.5-0.8B \
   --host 0.0.0.0 \
   --port 8000 \
   --tensor-parallel-size 1 \
@@ -124,7 +124,7 @@ Why this shape:
 If you want local API docs:
 
 ```bash
-uv run vllm serve Qwen/Qwen3.5-4B --enable-offline-docs
+uv run vllm serve Qwen/Qwen3.5-0.8B --enable-offline-docs
 ```
 
 Keep the `HF_HOME` / `HUGGINGFACE_HUB_CACHE` exports in the same shell before starting the server, or put them in your shell profile for that machine.
@@ -158,7 +158,7 @@ What it does:
 Useful environment overrides:
 
 ```bash
-MODEL=Qwen/Qwen3.5-4B HOST=127.0.0.1 PORT=8000 uv run bench_unique.py
+MODEL=Qwen/Qwen3.5-0.8B HOST=127.0.0.1 PORT=8000 uv run bench_unique.py
 ```
 
 ## 7) Run the shared-prefix benchmark
@@ -206,7 +206,7 @@ Useful environment overrides:
 ```bash
 OPENAI_BASE_URL=http://127.0.0.1:8000/v1 \
 OPENAI_API_KEY=EMPTY \
-MODEL=Qwen/Qwen3.5-4B \
+MODEL=Qwen/Qwen3.5-0.8B \
 TOTAL_REQUESTS=120 \
 uv run bench_realistic_sweep.py
 ```

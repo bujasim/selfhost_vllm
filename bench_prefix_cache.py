@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 
-MODEL = os.environ.get("MODEL", "Qwen/Qwen3.5-4B")
+MODEL = os.environ.get("MODEL", "Qwen/Qwen3.5-0.8B")
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = os.environ.get("PORT", "8000")
 CONCURRENCY_LEVELS = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64]

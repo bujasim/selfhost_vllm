@@ -4,7 +4,7 @@ from openai import OpenAI
 def main() -> None:
     client = OpenAI(base_url="http://127.0.0.1:8000/v1", api_key="EMPTY")
     response = client.chat.completions.create(
-        model="Qwen/Qwen3.5-4B",
+        model="Qwen/Qwen3.5-0.8B",
         messages=[{"role": "user", "content": "Reply with exactly: OK"}],
         max_tokens=16,
         temperature=0,

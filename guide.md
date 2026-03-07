@@ -26,7 +26,56 @@ uv --version
 
 If `nvidia-smi` fails, fix the image before debugging vLLM.
 
-## 2) Bootstrap the repo with uv
+## 2) Put the repo and model cache on persistent storage
+
+If you are on RunPod or any containerized host with a small root filesystem, do not rely on `/` or `/root/.cache`.
+
+The safe pattern is:
+
+- clone the repo under the large mounted volume, usually `/workspace`
+- point Hugging Face cache at that same volume
+
+Example:
+
+```bash
+cd /workspace
+git clone https://github.com/bujasim/selfhost_vllm.git
+cd selfhost_vllm
+
+mkdir -p /workspace/hf-cache/hub
+export HF_HOME=/workspace/hf-cache
+export HUGGINGFACE_HUB_CACHE=/workspace/hf-cache/hub
+```
+
+Or use the repo script after cloning:
+
+```bash
+cd /workspace/selfhost_vllm
+bash ./setup_runpod.sh
+```
+
+To bootstrap and immediately launch the server:
+
+```bash
+cd /workspace/selfhost_vllm
+bash ./setup_runpod.sh --serve
+```
+
+Important:
+
+- `cd /workspace` alone does not fix this
+- by default, Hugging Face downloads to `~/.cache/huggingface`, which is often on the small root disk
+- setting `HF_HOME` and `HUGGINGFACE_HUB_CACHE` is what makes model downloads land on the large volume
+
+You can verify the cache target with:
+
+```bash
+echo $HF_HOME
+echo $HUGGINGFACE_HUB_CACHE
+df -h /workspace
+```
+
+## 3) Bootstrap the repo with uv
 
 Clone the repo, then from the repo root run:
 
@@ -43,7 +92,7 @@ What this does:
 
 You do not need `python -m venv`, `pip install`, or `source .venv/bin/activate` for the documented workflow.
 
-## 3) Start the server
+## 4) Start the server
 
 Run the server through `uv` so the repo-managed environment is always used:
 
@@ -76,7 +125,9 @@ If you want local API docs:
 uv run vllm serve Qwen/Qwen3.5-4B --enable-offline-docs
 ```
 
-## 4) Smoke test the server
+Keep the `HF_HOME` / `HUGGINGFACE_HUB_CACHE` exports in the same shell before starting the server, or put them in your shell profile for that machine.
+
+## 5) Smoke test the server
 
 Use the checked-in script instead of an inline Python one-liner:
 
@@ -86,7 +137,7 @@ uv run smoke_test.py
 
 That script calls the OpenAI-compatible endpoint on `http://127.0.0.1:8000/v1`, disables thinking, and prints the response plus token usage.
 
-## 5) Run the official unique-prompt benchmark
+## 6) Run the official unique-prompt benchmark
 
 This is the clean baseline for worst-case-ish non-reused prompts.
 
@@ -108,7 +159,7 @@ Useful environment overrides:
 MODEL=Qwen/Qwen3.5-4B HOST=127.0.0.1 PORT=8000 uv run bench_unique.py
 ```
 
-## 6) Run the shared-prefix benchmark
+## 7) Run the shared-prefix benchmark
 
 This measures how much prefix caching can help when requests reuse long prompt prefixes.
 
@@ -118,7 +169,7 @@ uv run bench_prefix_cache.py
 
 That script uses the official `prefix_repetition` dataset and saves results under a timestamped `bench_prefix_*` directory.
 
-## 7) Run the realistic structured-output benchmark
+## 8) Run the realistic structured-output benchmark
 
 This is closer to a SaaS workflow because it includes:
 
@@ -163,7 +214,7 @@ Outputs:
 - `bench_realistic.py` writes `realistic_c<N>.json`
 - `bench_realistic_sweep.py` also writes `realistic_c<N>.out`
 
-## 8) Optional: let vLLM search the knee automatically
+## 9) Optional: let vLLM search the knee automatically
 
 After the manual sweeps are stable, you can try the built-in sweep tooling:
 
@@ -173,7 +224,7 @@ uv run vllm bench sweep serve_workload --help
 
 I would still do the checked-in scripts first because they are easier to reason about and compare.
 
-## 9) Convert throughput to economics
+## 10) Convert throughput to economics
 
 Once you have measured total tok/s per GPU:
 
@@ -190,7 +241,7 @@ The main question is:
 
 > What is the highest concurrency where p95 latency is still acceptable, and what total tok/s do I get there?
 
-## 10) Recommended test order
+## 11) Recommended test order
 
 1. `uv run bench_unique.py`
 2. `uv run bench_prefix_cache.py`

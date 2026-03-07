@@ -1,0 +1,18 @@
+[project]
+name = "selfhost-vllm"
+version = "0.1.0"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "aiohttp>=3.12.15",
+    "openai>=1.99.1",
+    "transformers>=4.55.0",
+    "vllm",
+]
+
+[tool.uv.sources]
+vllm = { index = "vllm-nightly" }
+
+[[tool.uv.index]]
+name = "vllm-nightly"
+url = "https://wheels.vllm.ai/nightly"
+explicit = true

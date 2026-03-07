@@ -16,8 +16,8 @@ TEMPERATURE = 0.0
 
 CONCURRENCY_LEVELS = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64]
 
-MIN_NUM_PROMPTS = 120
-PROMPTS_PER_CONCURRENCY = 8
+MIN_NUM_PROMPTS = 5
+PROMPTS_PER_CONCURRENCY = 5
 
 OUTPUT_DIR = Path(os.environ.get("OUT", f"bench_unique_{datetime.now():%Y%m%d_%H%M%S}"))
 EXTRA_BODY = {"chat_template_kwargs": {"enable_thinking": False}}

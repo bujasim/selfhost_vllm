@@ -9,8 +9,8 @@ MODEL = os.environ.get("MODEL", "Qwen/Qwen3.5-0.8B")
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = os.environ.get("PORT", "8000")
 
-INPUT_LEN = 6000
-OUTPUT_LEN = 3000
+INPUT_LEN = 4000
+OUTPUT_LEN = 1000
 NUM_WARMUPS = 8
 TEMPERATURE = 0.0
 

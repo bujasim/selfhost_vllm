@@ -45,6 +45,7 @@ cd selfhost_vllm
 mkdir -p /workspace/hf-cache/hub
 export HF_HOME=/workspace/hf-cache
 export HUGGINGFACE_HUB_CACHE=/workspace/hf-cache/hub
+export UV_LINK_MODE=copy
 ```
 
 Or use the repo script after cloning:
@@ -66,6 +67,7 @@ Important:
 - `cd /workspace` alone does not fix this
 - by default, Hugging Face downloads to `~/.cache/huggingface`, which is often on the small root disk
 - setting `HF_HOME` and `HUGGINGFACE_HUB_CACHE` is what makes model downloads land on the large volume
+- on mounted volumes like `/workspace`, `uv` may not be able to hardlink from its cache into `.venv`; `UV_LINK_MODE=copy` makes that behavior explicit and avoids the warning
 
 You can verify the cache target with:
 

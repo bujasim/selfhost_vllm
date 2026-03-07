@@ -8,6 +8,7 @@ WORKSPACE_ROOT="${WORKSPACE_ROOT:-/workspace}"
 HF_HOME_DEFAULT="${WORKSPACE_ROOT}/hf-cache"
 export HF_HOME="${HF_HOME:-$HF_HOME_DEFAULT}"
 export HUGGINGFACE_HUB_CACHE="${HUGGINGFACE_HUB_CACHE:-${HF_HOME}/hub}"
+export UV_LINK_MODE="${UV_LINK_MODE:-copy}"
 
 MODEL="${MODEL:-Qwen/Qwen3.5-4B}"
 HOST="${HOST:-0.0.0.0}"
@@ -33,6 +34,7 @@ Environment overrides:
   WORKSPACE_ROOT
   HF_HOME
   HUGGINGFACE_HUB_CACHE
+  UV_LINK_MODE
   MODEL
   HOST
   PORT
@@ -106,6 +108,7 @@ EOF
 echo "Using repo: $SCRIPT_DIR"
 echo "Using HF_HOME: $HF_HOME"
 echo "Using HUGGINGFACE_HUB_CACHE: $HUGGINGFACE_HUB_CACHE"
+echo "Using UV_LINK_MODE: $UV_LINK_MODE"
 
 uv python install 3.12
 uv sync

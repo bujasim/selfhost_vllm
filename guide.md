@@ -147,6 +147,12 @@ This is the clean baseline for worst-case-ish non-reused prompts.
 uv run bench_unique.py
 ```
 
+Example with fewer requests and a broader sweep:
+
+```bash
+uv run bench_unique.py --num-prompts 25 --concurrency 1 2 4 8 16 32 64 128 256 512 1024
+```
+
 What it does:
 
 - drives `vllm bench serve`
@@ -167,6 +173,12 @@ This measures how much prefix caching can help when requests reuse long prompt p
 
 ```bash
 uv run bench_prefix_cache.py
+```
+
+Example with fewer requests and a broader sweep:
+
+```bash
+uv run bench_prefix_cache.py --num-prompts 25 --concurrency 1 2 4 8 16 32 64 128 256 512 1024
 ```
 
 That script uses the official `prefix_repetition` dataset and saves results under a timestamped `bench_prefix_*` directory.

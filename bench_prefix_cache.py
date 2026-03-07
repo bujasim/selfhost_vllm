@@ -1,3 +1,4 @@
+import argparse
 import json
 import os
 import subprocess
@@ -8,12 +9,38 @@ from pathlib import Path
 MODEL = os.environ.get("MODEL", "Qwen/Qwen3.5-0.8B")
 HOST = os.environ.get("HOST", "127.0.0.1")
 PORT = os.environ.get("PORT", "8000")
-CONCURRENCY_LEVELS = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64]
-OUTPUT_DIR = Path(os.environ.get("OUT", f"bench_prefix_{datetime.now():%Y%m%d_%H%M%S}"))
+DEFAULT_CONCURRENCY_LEVELS = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64]
+DEFAULT_NUM_PROMPTS = 120
 EXTRA_BODY = {"chat_template_kwargs": {"enable_thinking": False}}
 
 
-def run_case(concurrency: int) -> None:
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default=MODEL)
+    parser.add_argument("--host", default=HOST)
+    parser.add_argument("--port", default=PORT)
+    parser.add_argument("--prefix-len", type=int, default=5000)
+    parser.add_argument("--suffix-len", type=int, default=1000)
+    parser.add_argument("--output-len", type=int, default=3000)
+    parser.add_argument("--num-prefixes", type=int, default=8)
+    parser.add_argument("--num-prompts", type=int, default=DEFAULT_NUM_PROMPTS)
+    parser.add_argument("--num-warmups", type=int, default=8)
+    parser.add_argument(
+        "--concurrency",
+        type=int,
+        nargs="+",
+        default=DEFAULT_CONCURRENCY_LEVELS,
+        help="Concurrency levels to sweep, e.g. --concurrency 1 2 4 8 16",
+    )
+    parser.add_argument(
+        "--out",
+        type=Path,
+        default=Path(os.environ.get("OUT", f"bench_prefix_{datetime.now():%Y%m%d_%H%M%S}")),
+    )
+    return parser.parse_args()
+
+
+def run_case(args: argparse.Namespace, concurrency: int) -> None:
     print(f"=== concurrency {concurrency} ===", flush=True)
     cmd = [
         "vllm",
@@ -24,25 +51,25 @@ def run_case(concurrency: int) -> None:
         "--endpoint",
         "/v1/chat/completions",
         "--host",
-        HOST,
+        args.host,
         "--port",
-        PORT,
+        args.port,
         "--model",
-        MODEL,
+        args.model,
         "--dataset-name",
         "prefix_repetition",
         "--prefix-repetition-prefix-len",
-        "5000",
+        str(args.prefix_len),
         "--prefix-repetition-suffix-len",
-        "1000",
+        str(args.suffix_len),
         "--prefix-repetition-output-len",
-        "3000",
+        str(args.output_len),
         "--prefix-repetition-num-prefixes",
-        "8",
+        str(args.num_prefixes),
         "--num-prompts",
-        "120",
+        str(args.num_prompts),
         "--num-warmups",
-        "8",
+        str(args.num_warmups),
         "--ready-check-timeout-sec",
         "120",
         "--max-concurrency",
@@ -50,7 +77,7 @@ def run_case(concurrency: int) -> None:
         "--save-result",
         "--save-detailed",
         "--result-dir",
-        str(OUTPUT_DIR),
+        str(args.out),
         "--result-filename",
         f"prefix_c{concurrency}.json",
         "--percentile-metrics",
@@ -64,10 +91,11 @@ def run_case(concurrency: int) -> None:
 
 
 def main() -> None:
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    for concurrency in CONCURRENCY_LEVELS:
-        run_case(concurrency)
-    print(f"Results saved in {OUTPUT_DIR}")
+    args = parse_args()
+    args.out.mkdir(parents=True, exist_ok=True)
+    for concurrency in args.concurrency:
+        run_case(args, concurrency)
+    print(f"Results saved in {args.out}")
 
 
 if __name__ == "__main__":

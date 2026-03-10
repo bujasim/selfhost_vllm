@@ -7,7 +7,7 @@ The simplest operating pattern is:
 1. Clone the repo once.
 2. Keep machine-specific settings in `.env.model`.
 3. Start the server with `bash ./serve.sh`.
-4. Switch models with `bash ./set_model.sh ...`, then restart `serve.sh`.
+4. Switch models with `bash ./set_model.sh ...` and `bash ./set_runtime.sh ...`, then restart `serve.sh`.
 
 That removes the old edit / commit / push / pull loop when you want to try a different model.
 
@@ -38,7 +38,7 @@ What that does:
 
 ## 2) Pick the model
 
-The repo-local model settings live in `.env.model`.
+The repo-local model settings live in `.env.model`, but you do not need to edit that file by hand on the pod.
 
 Default file:
 
@@ -75,6 +75,14 @@ Then open `.env.model` and adjust flags if the new model differs:
 - set `TRUST_REMOTE_CODE=1` only when needed
 - tune `MAX_MODEL_LEN` and `GPU_MEMORY_UTILIZATION` per model size
 
+If you do not want to edit files manually, use `set_runtime.sh`:
+
+```bash
+bash ./set_runtime.sh TENSOR_PARALLEL_SIZE 2 MAX_MODEL_LEN 8192
+```
+
+That updates `.env.model` for you.
+
 ## 3) Start the server
 
 ```bash
@@ -101,9 +109,10 @@ If the repo is already cloned and dependencies are already synced:
 ```bash
 cd /workspace/selfhost_vllm
 bash ./set_model.sh meta-llama/Llama-3.1-8B-Instruct
+bash ./set_runtime.sh TENSOR_PARALLEL_SIZE 2
 ```
 
-Update `.env.model` if that model needs different flags, then restart the server:
+If that model needs different flags, set them with `set_runtime.sh`, then restart the server:
 
 ```bash
 bash ./serve.sh
@@ -140,3 +149,24 @@ MODEL=meta-llama/Llama-3.1-8B-Instruct uv run bench_unique.py
 ```
 
 Shell env vars override `.env.model` for that command only.
+
+## 7) Fresh 2-GPU pod without editing files
+
+For a brand-new 2-GPU RunPod instance:
+
+```bash
+cd /workspace
+git clone https://github.com/bujasim/selfhost_vllm.git
+cd selfhost_vllm
+bash ./setup_runpod.sh
+bash ./set_model.sh Qwen/Qwen3.5-397B-A17B-FP8 qwen3
+bash ./set_runtime.sh TENSOR_PARALLEL_SIZE 2
+bash ./serve.sh
+```
+
+If the model still does not fit, lower context length next:
+
+```bash
+bash ./set_runtime.sh MAX_MODEL_LEN 8192
+bash ./serve.sh
+```

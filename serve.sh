@@ -53,4 +53,5 @@ if [[ "$ENABLE_PREFIX_CACHING" == "1" ]]; then
 fi
 
 echo "Serving model: $MODEL"
+echo "Tensor parallel size: $TENSOR_PARALLEL_SIZE"
 exec "${cmd[@]}"

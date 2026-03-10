@@ -10,13 +10,6 @@ export HF_HOME="${HF_HOME:-$HF_HOME_DEFAULT}"
 export HUGGINGFACE_HUB_CACHE="${HUGGINGFACE_HUB_CACHE:-${HF_HOME}/hub}"
 export UV_LINK_MODE="${UV_LINK_MODE:-copy}"
 
-MODEL="${MODEL:-Qwen/Qwen3.5-0.8B}"
-HOST="${HOST:-0.0.0.0}"
-PORT="${PORT:-8000}"
-MAX_MODEL_LEN="${MAX_MODEL_LEN:-12288}"
-GPU_MEMORY_UTILIZATION="${GPU_MEMORY_UTILIZATION:-0.92}"
-MAX_NUM_BATCHED_TOKENS="${MAX_NUM_BATCHED_TOKENS:-16384}"
-
 usage() {
   cat <<'EOF'
 Usage: ./setup_runpod.sh [--serve]
@@ -35,12 +28,7 @@ Environment overrides:
   HF_HOME
   HUGGINGFACE_HUB_CACHE
   UV_LINK_MODE
-  MODEL
-  HOST
-  PORT
-  MAX_MODEL_LEN
-  GPU_MEMORY_UTILIZATION
-  MAX_NUM_BATCHED_TOKENS
+  Plus any values in .env.model, or shell env vars that override them
 EOF
 }
 
@@ -100,15 +88,21 @@ install_uv
 
 mkdir -p "$HF_HOME" "$HUGGINGFACE_HUB_CACHE"
 
+if [[ ! -f .env.model ]]; then
+  cp .env.model.example .env.model
+fi
+
 cat > .env.runpod <<EOF
 export HF_HOME="${HF_HOME}"
 export HUGGINGFACE_HUB_CACHE="${HUGGINGFACE_HUB_CACHE}"
+export UV_LINK_MODE="${UV_LINK_MODE}"
 EOF
 
 echo "Using repo: $SCRIPT_DIR"
 echo "Using HF_HOME: $HF_HOME"
 echo "Using HUGGINGFACE_HUB_CACHE: $HUGGINGFACE_HUB_CACHE"
 echo "Using UV_LINK_MODE: $UV_LINK_MODE"
+echo "Using model config: ${SCRIPT_DIR}/.env.model"
 
 uv python install 3.12
 uv sync
@@ -117,17 +111,9 @@ echo
 echo "Setup complete."
 echo "To reuse the cache settings in a new shell:"
 echo "  source ${SCRIPT_DIR}/.env.runpod"
+echo "To start the server with the current model config:"
+echo "  bash ${SCRIPT_DIR}/serve.sh"
 
 if [[ $SERVE -eq 1 ]]; then
-  exec env HF_HOME="$HF_HOME" HUGGINGFACE_HUB_CACHE="$HUGGINGFACE_HUB_CACHE" \
-    uv run vllm serve "$MODEL" \
-      --host "$HOST" \
-      --port "$PORT" \
-      --tensor-parallel-size 1 \
-      --reasoning-parser qwen3 \
-      --language-model-only \
-      --max-model-len "$MAX_MODEL_LEN" \
-      --gpu-memory-utilization "$GPU_MEMORY_UTILIZATION" \
-      --enable-prefix-caching \
-      --max-num-batched-tokens "$MAX_NUM_BATCHED_TOKENS"
+  exec bash "${SCRIPT_DIR}/serve.sh"
 fi

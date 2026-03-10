@@ -4,10 +4,12 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+from runtime_config import get_client_host, load_runtime_config
 
-MODEL = os.environ.get("MODEL", "Qwen/Qwen3.5-0.8B")
-HOST = os.environ.get("HOST", "127.0.0.1")
-PORT = os.environ.get("PORT", "8000")
+CONFIG = load_runtime_config()
+MODEL = CONFIG["MODEL"]
+HOST = get_client_host(CONFIG)
+PORT = CONFIG["PORT"]
 
 INPUT_LEN = 4000
 OUTPUT_LEN = 1000

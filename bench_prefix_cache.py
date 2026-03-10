@@ -5,10 +5,12 @@ import subprocess
 from datetime import datetime
 from pathlib import Path
 
+from runtime_config import get_client_host, load_runtime_config
 
-MODEL = os.environ.get("MODEL", "Qwen/Qwen3.5-0.8B")
-HOST = os.environ.get("HOST", "127.0.0.1")
-PORT = os.environ.get("PORT", "8000")
+CONFIG = load_runtime_config()
+MODEL = CONFIG["MODEL"]
+HOST = get_client_host(CONFIG)
+PORT = CONFIG["PORT"]
 DEFAULT_CONCURRENCY_LEVELS = [1, 2, 4, 8, 12, 16, 24, 32, 48, 64]
 DEFAULT_NUM_PROMPTS = 120
 EXTRA_BODY = {"chat_template_kwargs": {"enable_thinking": False}}

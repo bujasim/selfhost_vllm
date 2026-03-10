@@ -14,6 +14,8 @@ if [[ -f "${SCRIPT_DIR}/.env.model" ]]; then
   source "${SCRIPT_DIR}/.env.model"
 fi
 
+export HF_HUB_ENABLE_HF_TRANSFER="${HF_HUB_ENABLE_HF_TRANSFER:-0}"
+
 MODEL="${MODEL:-Qwen/Qwen3.5-0.8B}"
 HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-8000}"
@@ -54,4 +56,5 @@ fi
 
 echo "Serving model: $MODEL"
 echo "Tensor parallel size: $TENSOR_PARALLEL_SIZE"
+echo "HF_HUB_ENABLE_HF_TRANSFER: $HF_HUB_ENABLE_HF_TRANSFER"
 exec "${cmd[@]}"

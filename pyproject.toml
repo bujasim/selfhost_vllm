@@ -6,5 +6,5 @@ dependencies = [
     "aiohttp>=3.12.15",
     "openai>=1.99.1",
     "transformers>=4.55.0",
-    "vllm",
+    "vllm==0.17.0",
 ]

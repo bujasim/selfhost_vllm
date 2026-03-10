@@ -5,9 +5,9 @@ This repo now treats the model as runtime config, not source code.
 The simplest operating pattern is:
 
 1. Clone the repo once.
-2. Keep machine-specific settings in `.env.model`.
-3. Start the server with `bash ./serve.sh`.
-4. Switch models with `bash ./set_model.sh ...` and `bash ./set_runtime.sh ...`, then restart `serve.sh`.
+2. Run `bash ./setup_runpod.sh`.
+3. Run `bash ./set_runtime.sh ...` for the values you want to override.
+4. Start the server with `bash ./serve.sh`.
 
 That removes the old edit / commit / push / pull loop when you want to try a different model.
 
@@ -37,9 +37,9 @@ What that does:
 - writes `.env.runpod` with cache-related environment exports
 - installs `vllm` from the normal package index instead of the nightly wheel index
 
-## 2) Pick the model
+## 2) Set Runtime Values
 
-The repo-local model settings live in `.env.model`, but you do not need to edit that file by hand on the pod.
+The repo-local runtime settings live in `.env.model`, but you do not need to edit that file by hand on the pod.
 
 Default file:
 
@@ -57,32 +57,33 @@ TRUST_REMOTE_CODE=0
 ENABLE_PREFIX_CACHING=1
 ```
 
-Fastest way to swap just the model name:
+For the normal workflow, use `set_runtime.sh`:
 
 ```bash
-bash ./set_model.sh Qwen/Qwen3.5-0.8B
+bash ./set_runtime.sh MODEL Qwen/Qwen3.5-0.8B
 ```
 
 If the target model needs a parser too:
 
 ```bash
-bash ./set_model.sh Qwen/Qwen3.5-0.8B qwen3
+bash ./set_runtime.sh MODEL Qwen/Qwen3.5-0.8B REASONING_PARSER qwen3
 ```
 
-Then open `.env.model` and adjust flags if the new model differs:
+Common overrides:
 
-- clear `REASONING_PARSER` if the model does not use one
-- set `LANGUAGE_MODEL_ONLY=0` if that flag should not be passed
-- set `TRUST_REMOTE_CODE=1` only when needed
-- tune `MAX_MODEL_LEN` and `GPU_MEMORY_UTILIZATION` per model size
+- `MODEL`
+- `REASONING_PARSER`
+- `TENSOR_PARALLEL_SIZE`
+- `MAX_MODEL_LEN`
+- `GPU_MEMORY_UTILIZATION`
+- `LANGUAGE_MODEL_ONLY`
+- `TRUST_REMOTE_CODE`
 
-If you do not want to edit files manually, use `set_runtime.sh`:
+Example:
 
 ```bash
-bash ./set_runtime.sh TENSOR_PARALLEL_SIZE 2 MAX_MODEL_LEN 8192
+bash ./set_runtime.sh MODEL Qwen/Qwen3.5-122B-A10B-FP8 REASONING_PARSER qwen3 TENSOR_PARALLEL_SIZE 2 LANGUAGE_MODEL_ONLY 0
 ```
-
-That updates `.env.model` for you.
 
 ## 3) Start the server
 
@@ -109,8 +110,7 @@ If the repo is already cloned and dependencies are already synced:
 
 ```bash
 cd /workspace/selfhost_vllm
-bash ./set_model.sh meta-llama/Llama-3.1-8B-Instruct
-bash ./set_runtime.sh TENSOR_PARALLEL_SIZE 2
+bash ./set_runtime.sh MODEL meta-llama/Llama-3.1-8B-Instruct TENSOR_PARALLEL_SIZE 2
 ```
 
 If that model needs different flags, set them with `set_runtime.sh`, then restart the server:
@@ -151,7 +151,7 @@ MODEL=meta-llama/Llama-3.1-8B-Instruct uv run bench_unique.py
 
 Shell env vars override `.env.model` for that command only.
 
-## 7) Fresh 2-GPU pod without editing files
+## 7) Fresh 2-GPU Pod
 
 For a brand-new 2-GPU RunPod instance:
 
@@ -160,8 +160,7 @@ cd /workspace
 git clone https://github.com/bujasim/selfhost_vllm.git
 cd selfhost_vllm
 bash ./setup_runpod.sh
-bash ./set_model.sh Qwen/Qwen3.5-397B-A17B-FP8 qwen3
-bash ./set_runtime.sh TENSOR_PARALLEL_SIZE 2
+bash ./set_runtime.sh MODEL Qwen/Qwen3.5-122B-A10B-FP8 REASONING_PARSER qwen3 TENSOR_PARALLEL_SIZE 2 LANGUAGE_MODEL_ONLY 0
 bash ./serve.sh
 ```
 
@@ -171,3 +170,5 @@ If the model still does not fit, lower context length next:
 bash ./set_runtime.sh MAX_MODEL_LEN 8192
 bash ./serve.sh
 ```
+
+`serve.sh` also defaults `HF_HUB_ENABLE_HF_TRANSFER=0`, so you do not need to manually unset that variable on fresh pods.

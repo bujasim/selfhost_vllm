@@ -8,11 +8,3 @@ dependencies = [
     "transformers>=4.55.0",
     "vllm",
 ]
-
-[tool.uv.sources]
-vllm = { index = "vllm-nightly" }
-
-[[tool.uv.index]]
-name = "vllm-nightly"
-url = "https://wheels.vllm.ai/nightly"
-explicit = true

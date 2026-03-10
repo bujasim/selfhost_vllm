@@ -35,6 +35,7 @@ What that does:
 - syncs the Python environment
 - creates `.env.model` from `.env.model.example` if it does not exist
 - writes `.env.runpod` with cache-related environment exports
+- installs `vllm` from the normal package index instead of the nightly wheel index
 
 ## 2) Pick the model
 
